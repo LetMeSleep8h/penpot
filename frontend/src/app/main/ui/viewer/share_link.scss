@@ -9,13 +9,193 @@
 @use "ds/_utils.scss" as *;
 @use "ds/typography.scss" as *;
 
-// refactor/ stays for the modal placeholder (%modal-container-base), the
-// link input (%input-element) and the page checkboxes (%input-checkbox,
-// %button-icon-small for their tick), which move with their own groups.
+// refactor/ stays for the modal placeholder (%modal-container-base), which
+// moves with its own group.
 @use "refactor/common-refactor.scss" as deprecated;
 
-.share-modal {
-  display: block;
+// --- Link row
+
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: var(--sp-m) var(--sp-l);
+  border: $b-1 solid var(--color-background-quaternary);
+  border-radius: $br-8;
+
+  &.link-row-pending-destroy {
+    background-color: var(--color-background-tertiary);
+  }
+}
+
+.link-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: var(--sp-xxs);
+  min-inline-size: 0;
+}
+
+.link-url {
+  @include use-typography("body-medium");
+
+  color: var(--color-foreground-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-block-end: var(--sp-s);
+}
+
+.link-line {
+  display: flex;
+  gap: var(--sp-xs);
+  min-inline-size: 0;
+}
+
+.link-label {
+  color: var(--color-foreground-secondary);
+  flex-shrink: 0;
+}
+
+.link-value {
+  color: var(--color-foreground-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current-tag {
+  @include use-typography("body-small");
+
+  color: var(--color-foreground-secondary);
+}
+
+// --- Collapsible title
+
+.share-link-collapsible-title {
+  @include use-typography("headline-small");
+
+  border: none;
+  background: none;
+  color: var(--color-foreground-secondary);
+  block-size: $sz-32;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.share-link-collapsible-title-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-inline-end: px2rem(6);
+}
+
+// --- Permissions section
+
+.permissions-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-s);
+}
+
+.permissions-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-s);
+}
+
+.permissions-view-mode,
+.permissions-select-row {
+  display: grid;
+  grid-template-columns: minmax(px2rem(136), max-content) 1fr;
+  align-items: start;
+  column-gap: var(--sp-s);
+  inline-size: 100%;
+}
+
+.permissions-view-mode {
+  max-block-size: px2rem(216);
+  overflow: hidden auto;
+  scrollbar-gutter: stable;
+}
+
+.permissions-subtitle {
+  color: var(--color-foreground-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  block-size: $sz-32;
+}
+
+.permissions-items {
+  color: var(--color-foreground-primary);
+}
+
+.permissions-page-row,
+.permissions-select-all-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  block-size: $sz-32;
+}
+
+.permissions-page-row .permissions-checkbox,
+.permissions-select-all-row .permissions-checkbox {
+  --input-checkbox-text-color: var(--color-foreground-primary);
+}
+
+.permissions-current-tag {
+  @include use-typography("body-small");
+
+  color: var(--color-foreground-secondary);
+}
+
+.permissions-select-all-row {
+  justify-content: space-between;
+}
+
+.permissions-count-pages {
+  @include use-typography("body-small");
+
+  color: var(--color-foreground-secondary);
+}
+
+.permissions-pages-selection {
+  margin: 0;
+}
+
+// --- Links section
+
+.links-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  padding-block-start: var(--sp-xl);
+  border-block-start: var(--share-link-divider);
+}
+
+.links-count {
+  margin-inline-start: var(--sp-xs);
+  color: var(--color-foreground-secondary);
+  white-space: nowrap;
+}
+
+.links-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-m);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-block-size: px2rem(216);
+  overflow: hidden auto;
+  scrollbar-gutter: stable;
+}
+
+// --- Share link dialog
+
+.share-link-modal {
   position: absolute;
   inset-block-start: px2rem(52);
   inset-inline: calc(100vw - #{$sz-512}) var(--sp-m);
@@ -25,7 +205,24 @@
 .share-link-dialog {
   @extend %modal-container-base;
 
+  --share-link-divider: #{$b-1} solid var(--color-background-quaternary);
+
   min-block-size: unset;
+
+  // The file's link list can push the content past the base 512px cap;
+  // let the dialog use the viewport and scroll instead of overflowing.
+  max-block-size: calc(100vh - #{$sz-64});
+  overflow-y: auto;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.share-link-close-button {
+  position: absolute;
+  inset-block-start: var(--sp-s);
+  inset-inline-end: var(--sp-xs);
 }
 
 .share-link-header {
@@ -38,14 +235,7 @@
   color: var(--color-foreground-primary);
 }
 
-// Tooltip wrapper of the close button: it places it in the corner.
-.modal-close-button {
-  position: absolute;
-  inset-block-start: var(--sp-s);
-  inset-inline-end: var(--sp-xs);
-}
-
-.modal-content {
+.share-link-content {
   @include use-typography("body-small");
 
   display: flex;
@@ -59,165 +249,33 @@
   gap: var(--sp-s);
 }
 
-.hint-wrapper {
+// Place the copy button flush with the end of the input field.
+.share-link-copy-input > div {
+  column-gap: 0;
+  padding-inline-end: 0;
+}
+
+.share-link-hint-wrapper {
   display: flex;
   align-items: center;
   gap: var(--sp-xs);
 }
 
-.hint {
+.share-link-hint {
   flex-grow: 1;
   color: var(--color-foreground-secondary);
 }
 
-.custon-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  border-radius: $br-8;
-  block-size: $sz-32;
-  inline-size: 100%;
-  background-color: var(--color-background-tertiary);
-}
-
-.input-text {
-  @extend %input-element;
-  @include use-typography("body-small");
-
-  color: var(--color-foreground-primary);
-  padding-inline-start: var(--sp-s);
-  margin: 0;
-  flex-grow: 1;
-
-  &:focus {
-    outline: none;
-    border: $b-1 solid var(--color-accent-primary);
-  }
-}
-
-.description {
+.share-link-confirm-description {
   @include use-typography("body-small");
 
   color: var(--color-foreground-secondary);
   margin-block-end: var(--sp-xxl);
 }
 
-.actions {
+.share-link-confirm-actions {
   display: flex;
   align-items: center;
   gap: var(--sp-xs);
   justify-content: flex-end;
-}
-
-.permissions-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-s);
-}
-
-.manage-permissions {
-  @include use-typography("headline-small");
-
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: var(--color-foreground-secondary);
-  block-size: $sz-32;
-  display: flex;
-  align-items: center;
-  padding: 0;
-}
-
-.icon {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-inline-end: px2rem(6);
-
-  .arrow-icon {
-    flex-shrink: 0;
-    color: var(--color-foreground-secondary);
-  }
-
-  &.rotated {
-    transform: rotate(90deg);
-  }
-}
-
-.view-mode,
-.access-mode,
-.inspect-mode {
-  display: flex;
-  inline-size: 100%;
-}
-
-.view-mode {
-  max-block-size: px2rem(216);
-  overflow: hidden auto;
-  scrollbar-gutter: stable;
-}
-
-.subtitle {
-  color: var(--color-foreground-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  inline-size: px2rem(136);
-  block-size: $sz-32;
-}
-
-.items {
-  flex-grow: 1;
-  color: var(--color-foreground-primary);
-}
-
-.select-all-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  justify-content: space-between;
-  block-size: $sz-32;
-  border-block-end: $b-1 solid var(--color-background-quaternary);
-}
-
-.select-all-label {
-  color: var(--color-foreground-primary);
-}
-
-.pages-selection {
-  margin: 0;
-}
-
-.page-row {
-  border-block-end: $b-1 solid var(--color-background-quaternary);
-
-  &:last-child {
-    border-block-end: none;
-  }
-}
-
-.count-pages,
-.current-tag {
-  @include use-typography("body-small");
-
-  color: var(--color-foreground-secondary);
-}
-
-.checkbox-wrapper {
-  @extend %input-checkbox;
-
-  block-size: $sz-32;
-  padding: 0;
-
-  span.checked {
-    background-color: var(--color-accent-primary);
-    border: $b-1 solid var(--color-accent-primary);
-
-    // The legacy tick icon has no class; it moves with the checkboxes.
-    svg {
-      @extend %button-icon-small;
-
-      stroke: var(--color-background-primary);
-    }
-  }
 }
